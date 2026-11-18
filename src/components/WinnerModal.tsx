@@ -122,7 +122,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
               </span>
             </div>
             <span className="text-[10px] text-amber-300 font-bold mt-1 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
-              Khoảnh khắc thử thách (Bằng chứng độc quyền)
+              Khoảnh khắc video nhiệm vụ (19/11)
             </span>
           </div>
         ) : null}

@@ -187,7 +187,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                     </div>
                     {(hasVideo || hasPhoto) && (
                       <span className="text-[9px] sm:text-[10px] text-gold-400 font-semibold group-hover:underline">
-                        Xem bằng chứng &rarr;
+                        Xem video nhiệm vụ &rarr;
                       </span>
                     )}
                   </div>

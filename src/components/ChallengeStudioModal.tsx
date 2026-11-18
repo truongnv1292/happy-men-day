@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { ChallengeItem } from '../types'
 import {
   saveMediaBlob,
@@ -62,51 +62,44 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
   const [uploadProgressMsg, setUploadProgressMsg] = useState<string>('')
 
   // Khởi động Camera và Micro
-  useEffect(() => {
-    let active = true
+  const initCamera = useCallback(async () => {
+    setCameraError('')
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Trình duyệt không hỗ trợ truy cập camera/micro')
+      }
 
-    const initCamera = async () => {
-      setCameraError('')
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error('Trình duyệt không hỗ trợ truy cập camera/micro')
-        }
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 640 }
+        },
+        audio: challenge.mediaType === 'video'
+      }
 
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: 'user',
-            width: { ideal: 640 },
-            height: { ideal: 640 }
-          },
-          audio: challenge.mediaType === 'video'
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints)
-        if (!active) {
-          stream.getTracks().forEach((t) => t.stop())
-          return
-        }
-
-        streamRef.current = stream
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-        setStreamReady(true)
-      } catch (err: unknown) {
-        console.error('Lỗi mở camera/mic:', err)
-        const e = err as { name?: string; message?: string }
-        if (e.name === 'NotAllowedError') {
-          setCameraError('Bạn chưa cấp quyền truy cập Camera / Micro trong trình duyệt.')
-        } else {
-          setCameraError(e.message || 'Không thể mở Camera / Micro trên thiết bị.')
-        }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play().catch(() => {})
+      }
+      setStreamReady(true)
+    } catch (err: unknown) {
+      console.error('Lỗi mở camera/mic:', err)
+      const e = err as { name?: string; message?: string }
+      if (e.name === 'NotAllowedError') {
+        setCameraError('Bạn chưa cấp quyền truy cập Camera / Micro trong trình duyệt.')
+      } else {
+        setCameraError(e.message || 'Không thể mở Camera / Micro trên thiết bị.')
       }
     }
+  }, [challenge.mediaType])
 
+  useEffect(() => {
     initCamera()
 
     return () => {
-      active = false
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
       }
@@ -114,7 +107,19 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
         URL.revokeObjectURL(previewUrl)
       }
     }
-  }, [challenge.mediaType])
+  }, [initCamera])
+
+  // Khi có previewUrl cho video, xóa triệt để srcObject live stream và nạp video đã quay
+  useEffect(() => {
+    if (previewUrl && challenge.mediaType === 'video' && previewVideoRef.current) {
+      previewVideoRef.current.srcObject = null
+      previewVideoRef.current.src = previewUrl
+      previewVideoRef.current.load()
+      previewVideoRef.current.play().catch((err) => {
+        console.warn('Autoplay preview video:', err)
+      })
+    }
+  }, [previewUrl, challenge.mediaType])
 
   // Đếm thời gian ghi hình
   useEffect(() => {
@@ -180,6 +185,16 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
         const objUrl = URL.createObjectURL(videoBlob)
         setPreviewUrl(objUrl)
         setIsRecording(false)
+
+        // Tạm tắt các tracks của camera live để nhường chỗ xem lại video
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => {
+            track.enabled = false
+          })
+        }
+        if (videoRef.current) {
+          videoRef.current.srcObject = null
+        }
       }
 
       mediaRecorderRef.current = recorder
@@ -227,6 +242,16 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
           setPreviewBlob(blob)
           const objUrl = URL.createObjectURL(blob)
           setPreviewUrl(objUrl)
+
+          // Tạm tắt camera khi đã chụp xong ảnh
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => {
+              track.enabled = false
+            })
+          }
+          if (videoRef.current) {
+            videoRef.current.srcObject = null
+          }
         }
       },
       'image/jpeg',
@@ -244,10 +269,17 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
     setRecordingSeconds(0)
     setLaughCountdown(10)
 
-    // Khởi động lại stream nếu cần
-    if (videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current
-      videoRef.current.play().catch(() => {})
+    // Khởi động lại stream camera
+    if (streamRef.current && streamRef.current.active) {
+      streamRef.current.getTracks().forEach((track) => {
+        track.enabled = true
+      })
+      if (videoRef.current) {
+        videoRef.current.srcObject = streamRef.current
+        videoRef.current.play().catch(() => {})
+      }
+    } else {
+      initCamera()
     }
   }
 
@@ -300,6 +332,11 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
       }
 
       setUploadProgressMsg('Hoàn tất! Đang mở khóa Vòng Quay May Mắn...')
+
+      // Dừng toàn bộ camera stream khi đã hoàn thành thử thách
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      }
 
       setTimeout(() => {
         setIsUploading(false)
@@ -363,34 +400,37 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
             </div>
           ) : previewUrl ? (
             /* CHẾ ĐỘ XEM LẠI (PREVIEW) */
-            <div className="relative w-full h-full flex items-center justify-center bg-black">
+            <div key="recorded-preview-container" className="relative w-full h-full flex items-center justify-center bg-black">
               {challenge.mediaType === 'video' ? (
                 <video
+                  key={`preview-video-${previewUrl}`}
                   ref={previewVideoRef}
                   src={previewUrl}
                   controls
                   playsInline
                   autoPlay
-                  className="w-full h-full max-h-[380px] object-cover"
+                  className="w-full h-full max-h-[380px] object-contain"
                 />
               ) : (
                 <img
+                  key="preview-photo"
                   src={previewUrl}
                   alt="Ảnh Selfie Bằng Chứng"
-                  className="w-full h-full max-h-[380px] object-cover"
+                  className="w-full h-full max-h-[380px] object-contain"
                 />
               )}
 
               {/* Tag Bằng chứng đã sẵn sàng */}
               <div className="absolute top-3 left-3 bg-emerald-600/90 text-white font-bold text-[11px] px-2.5 py-1 rounded-full shadow flex items-center gap-1 backdrop-blur-sm pointer-events-none">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Bằng chứng đã quay xong</span>
+                <span>Đã ghi hình nhiệm vụ xong (Xem lại video trước khi lưu)</span>
               </div>
             </div>
           ) : (
             /* CHẾ ĐỘ CAMERA LIVE */
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div key="live-camera-container" className="relative w-full h-full flex items-center justify-center">
               <video
+                key="live-camera-video"
                 ref={videoRef}
                 autoPlay
                 playsInline
@@ -398,23 +438,18 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
                 className="w-full h-full max-h-[380px] object-cover transform -scale-x-100"
               />
 
-              {/* Huy hiệu REC nhấp nháy khi đang quay video */}
+              {/* Huy hiệu REC nhấp nháy góc trên khi đang quay video */}
               {isRecording && (
-                <div className="absolute top-3 left-3 bg-red-600 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 animate-pulse">
+                <div className="absolute top-3 left-3 bg-red-600/90 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 animate-pulse backdrop-blur-sm pointer-events-none">
                   <span className="w-2 h-2 rounded-full bg-white" />
                   <span>REC {formatSeconds(recordingSeconds)}</span>
                 </div>
               )}
 
-              {/* Bộ đếm ngược 10 giây riêng cho thử thách Cười */}
+              {/* Huy hiệu đếm ngược nhỏ gọn ở góc trên cho thử thách Cười 10s (Không che mặt người quay) */}
               {isRecording && challenge.id === 'laugh10s' && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-black/30 backdrop-blur-[2px]">
-                  <span className="text-6xl sm:text-7xl font-black text-amber-400 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] animate-ping">
-                    {laughCountdown}
-                  </span>
-                  <span className="text-sm font-extrabold text-white mt-2 bg-slate-900/80 px-3 py-1 rounded-full border border-gold-500/40">
-                    Cười tươi lên nào! 😂
-                  </span>
+                <div className="absolute top-3 right-3 bg-amber-500/90 text-slate-950 font-black text-xs px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 backdrop-blur-sm pointer-events-none">
+                  <span>⏳ Còn {laughCountdown}s</span>
                 </div>
               )}
 
@@ -466,12 +501,12 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>ĐANG GỬI...</span>
+                    <span>ĐANG LƯU...</span>
                   </>
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4" />
-                    <span>GỬI BẰNG CHỨNG & MỞ KHÓA</span>
+                    <span>Lưu lại để tiếp tục</span>
                   </>
                 )}
               </button>
@@ -487,7 +522,11 @@ export const ChallengeStudioModal: React.FC<ChallengeStudioModalProps> = ({
                     className="w-full py-3.5 px-6 rounded-2xl font-black text-sm bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(239,68,68,0.6)] transition transform active:scale-95 flex items-center justify-center gap-2"
                   >
                     <span className="w-3.5 h-3.5 rounded-sm bg-white" />
-                    <span>HOÀN TẤT & DỪNG QUAY ({formatSeconds(recordingSeconds)})</span>
+                    <span>
+                      {challenge.id === 'laugh10s'
+                        ? `HOÀN TẤT & DỪNG QUAY (CÒN ${laughCountdown}S)`
+                        : `HOÀN TẤT & DỪNG QUAY (${formatSeconds(recordingSeconds)})`}
+                    </span>
                   </button>
                 ) : (
                   <button

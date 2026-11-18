@@ -81,7 +81,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         {/* Tiêu đề Modal */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-500/20 border border-gold-500/40 text-gold-300 text-xs font-black uppercase tracking-wider mx-auto mb-2">
           <Trophy className="w-4 h-4 text-gold-400" />
-          HỒ SƠ BẰNG CHỨNG 19/11
+          XEM VIDEO NHIỆM VỤ 19/11
         </div>
 
         <h3 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-200 to-gold-400">

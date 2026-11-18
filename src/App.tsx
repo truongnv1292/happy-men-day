@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { MEMBERS } from './data/members'
 import { PRIZES } from './data/prizes'
 import { Member, Prize, SpinRecord, ChallengeItem, GreetingBannerConfig } from './types'
@@ -24,7 +24,9 @@ import {
   getGreetingBannerConfig,
   saveGreetingBannerConfig,
   syncGreetingBannerToFirebase,
-  fetchGreetingBannerFromFirebase
+  fetchGreetingBannerFromFirebase,
+  fetchCloudCredentialsFromFirebase,
+  mergeRecords
 } from './utils/onlineStorage'
 import {
   Volume2,
@@ -127,36 +129,77 @@ export const App: React.FC = () => {
     setCompletedChallenge(null)
   }, [selectedMember?.id])
 
-  // Lưu records vào LocalStorage
+  // Lưu records vào LocalStorage (kèm cơ chế bảo vệ chống tràn Quota 5MB)
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
     } catch (e) {
-      console.error('Không thể lưu LocalStorage:', e)
+      console.warn('LocalStorage đầy quota, đang tối ưu hóa dữ liệu...', e)
+      try {
+        const slimRecords = records.map((r) => {
+          if (r.photoUrl && r.photoUrl.startsWith('data:') && r.photoUrl.length > 50000) {
+            return { ...r, photoUrl: undefined }
+          }
+          return r
+        })
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(slimRecords))
+      } catch (e2) {
+        console.error('Không thể lưu LocalStorage:', e2)
+      }
     }
   }, [records])
 
-  // Đồng bộ Online Realtime từ Firebase
+  // Đồng bộ Online Realtime từ Firebase (Hòa trộn 2 chiều thông minh, không hồi sinh bản ghi đã xóa)
   useEffect(() => {
-    const initOnline = async () => {
+    let unsubscribe: (() => void) | null = null
+
+    const startSync = async () => {
+      // 0. Đồng bộ cấu hình Cloudinary từ Firebase (nếu máy người chơi chưa có)
+      await fetchCloudCredentialsFromFirebase()
+
+      // 1. Tải danh sách từ Firebase và hòa trộn với danh sách Local
       const onlineRecords = await fetchRecordsFromFirebase()
-      if (onlineRecords && onlineRecords.length > 0) {
-        setRecords(onlineRecords)
+      if (onlineRecords !== null) {
+        setRecords((currentLocal) => {
+          const merged = mergeRecords(currentLocal, onlineRecords)
+          // Chỉ tự động sync các lượt quay mới quay offline (synced === false)
+          const unsynced = merged.filter((r) => r.synced === false)
+          if (unsynced.length > 0) {
+            unsynced.forEach((r) => syncRecordToFirebase(r))
+          }
+          return merged
+        })
       }
+
       const onlineBanner = await fetchGreetingBannerFromFirebase()
       if (onlineBanner) {
         setGreetingBanner(onlineBanner)
         saveGreetingBannerConfig(onlineBanner)
       }
-    }
-    initOnline()
 
-    const unsubscribe = subscribeToFirebaseRecords((updatedRecords) => {
-      if (updatedRecords && Array.isArray(updatedRecords)) {
-        setRecords(updatedRecords)
-      }
-    })
-    return () => unsubscribe()
+      // 2. Lắng nghe cập nhật Realtime liên tục (SSE + Polling backup)
+      if (unsubscribe) unsubscribe()
+      unsubscribe = subscribeToFirebaseRecords((remoteRecords) => {
+        if (remoteRecords && Array.isArray(remoteRecords)) {
+          setRecords((currentLocal) => {
+            return mergeRecords(currentLocal, remoteRecords)
+          })
+        }
+      })
+    }
+
+    startSync()
+
+    // Lắng nghe khi Admin lưu cấu hình Firebase mới để tự động re-sync ngay lập tức
+    const handleConfigChanged = () => {
+      startSync()
+    }
+    window.addEventListener('MENDAY_FIREBASE_CONFIG_CHANGED', handleConfigChanged)
+
+    return () => {
+      if (unsubscribe) unsubscribe()
+      window.removeEventListener('MENDAY_FIREBASE_CONFIG_CHANGED', handleConfigChanged)
+    }
   }, [])
 
   // Toggle Mute
@@ -282,12 +325,19 @@ export const App: React.FC = () => {
       videoUrl: completedChallenge.videoUrl,
       challengeId: completedChallenge.challengeId as any,
       challengeTitle: completedChallenge.challengeTitle,
-      mediaType: completedChallenge.mediaType
+      mediaType: completedChallenge.mediaType,
+      synced: false
     }
 
     // LƯU LỊCH SỬ VÀ ĐỒNG BỘ ONLINE LÊN FIREBASE
     setRecords((prev) => [newRecord, ...prev])
-    syncRecordToFirebase(newRecord)
+    syncRecordToFirebase(newRecord).then((ok) => {
+      if (ok) {
+        setRecords((prev) =>
+          prev.map((r) => (r.memberId === newRecord.memberId ? { ...r, synced: true } : r))
+        )
+      }
+    })
 
     setSpinningMemberId(selectedMember.id)
     setTargetPrizeIndex(randomIndex)
@@ -295,11 +345,11 @@ export const App: React.FC = () => {
   }
 
   // Kết thúc vòng quay
-  const handleWheelFinished = (prize: Prize) => {
+  const handleWheelFinished = useCallback((prize: Prize) => {
     setMustSpin(false)
     setSpinningMemberId(null)
     setWinnerModalPrize(prize)
-  }
+  }, [])
 
   // Đăng nhập thành công
   const handleLoginSuccess = () => {

@@ -244,7 +244,7 @@ export const ChallengeWheelModal: React.FC<ChallengeWheelModalProps> = ({
               onClick={() => onSelectChallenge(selectedChallenge)}
               className="mt-4 w-full py-3 px-5 rounded-xl font-black text-sm text-slate-950 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-400 hover:brightness-110 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition transform active:scale-95 flex items-center justify-center gap-2"
             >
-              <span>VÀO PHÒNG QUAY BẰNG CHỨNG NGAY</span>
+              <span>VÀO THỰC HIỆN NHIỆM VỤ NGAY</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

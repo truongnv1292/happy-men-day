@@ -18,11 +18,17 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
   disabled
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [rotation, setRotation] = useState<number>(0)
+  const [, setRotation] = useState<number>(0)
+  const rotationRef = useRef<number>(0)
+  const onFinishedRef = useRef(onFinished)
   const isSpinningRef = useRef<boolean>(false)
   const animFrameRef = useRef<number | null>(null)
   const ledPhaseRef = useRef<number>(0)
   const lastTickAngleRef = useRef<number>(0)
+
+  useEffect(() => {
+    onFinishedRef.current = onFinished
+  }, [onFinished])
 
   const numSlices = prizes.length
   const sliceAngle = (2 * Math.PI) / numSlices
@@ -163,17 +169,23 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
 
   // Vẽ ban đầu
   useEffect(() => {
-    drawWheel(rotation, ledPhaseRef.current)
-  }, [drawWheel, rotation])
+    drawWheel(rotationRef.current, ledPhaseRef.current)
+  }, [drawWheel])
 
   // Xử lý hiệu ứng quay khi mustSpin = true
   useEffect(() => {
-    if (!mustSpin || targetPrizeIndex === null || isSpinningRef.current) return
+    if (!mustSpin || targetPrizeIndex === null) {
+      return
+    }
+
+    if (isSpinningRef.current) {
+      return
+    }
 
     isSpinningRef.current = true
     const duration = 6500 // 6.5 giây hồi hộp kịch tính
     const startTime = performance.now()
-    const startRotation = rotation
+    const startRotation = rotationRef.current
 
     // Tính toán góc đích
     const targetOffset = 1.5 * Math.PI - (targetPrizeIndex + 0.5) * sliceAngle
@@ -199,11 +211,10 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
 
       const currentAngle =
         startRotation + (totalRotationTarget - startRotation) * easedProgress
-      setRotation(currentAngle)
+      rotationRef.current = currentAngle
 
       // Kiểm tra âm thanh tick
-      const anglePerSlice = sliceAngle
-      if (Math.abs(currentAngle - lastTickAngleRef.current) >= anglePerSlice) {
+      if (Math.abs(currentAngle - lastTickAngleRef.current) >= sliceAngle) {
         soundManager.playTick()
         lastTickAngleRef.current = currentAngle
       }
@@ -220,18 +231,23 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
         animFrameRef.current = requestAnimationFrame(animate)
       } else {
         isSpinningRef.current = false
-        onFinished(prizes[targetPrizeIndex])
+        const normalizedFinal = totalRotationTarget % (2 * Math.PI)
+        rotationRef.current = normalizedFinal
+        setRotation(normalizedFinal)
+        onFinishedRef.current(prizes[targetPrizeIndex])
       }
     }
 
     animFrameRef.current = requestAnimationFrame(animate)
 
     return () => {
-      if (animFrameRef.current) {
+      // Chỉ hủy khi bánh xe không còn được yêu cầu quay (mustSpin = false)
+      if (!mustSpin && animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current)
+        isSpinningRef.current = false
       }
     }
-  }, [mustSpin, targetPrizeIndex, prizes, sliceAngle, onFinished, drawWheel])
+  }, [mustSpin, targetPrizeIndex, prizes, sliceAngle, drawWheel])
 
   return (
     <div className="relative flex flex-col items-center justify-center select-none w-full">

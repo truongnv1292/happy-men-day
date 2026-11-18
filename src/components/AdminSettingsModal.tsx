@@ -9,7 +9,10 @@ import {
   isFirebaseConfigured,
   resetAllFirebaseRecords,
   deleteRecordFromFirebase,
-  DEFAULT_GREETING_MESSAGE
+  DEFAULT_GREETING_MESSAGE,
+  normalizeFirebaseUrl,
+  testFirebaseConnection,
+  syncAllRecordsToFirebase
 } from '../utils/onlineStorage'
 import { clearAllMedia, deleteMediaBlob } from '../utils/indexedDbStorage'
 import {
@@ -82,10 +85,38 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
     setCloudConfig(getCloudConfig())
   }, [])
 
-  const handleSaveCloudConfig = () => {
-    saveCloudConfig(cloudConfig)
-    setSuccessMsg('Đã lưu cấu hình Cloud thành công!')
-    setTimeout(() => setSuccessMsg(''), 3000)
+  const [isTestingCloud, setIsTestingCloud] = useState<boolean>(false)
+  const [cloudErrorMsg, setCloudErrorMsg] = useState<string>('')
+
+  const handleSaveCloudConfig = async () => {
+    setCloudErrorMsg('')
+    setIsTestingCloud(true)
+
+    const normalizedUrl = normalizeFirebaseUrl(cloudConfig.firebaseDbUrl)
+    const newConfig = { ...cloudConfig, firebaseDbUrl: normalizedUrl }
+    setCloudConfig(newConfig)
+    saveCloudConfig(newConfig)
+
+    // Nếu người dùng có điền Firebase URL -> Test kết nối thực tế
+    if (normalizedUrl) {
+      const testResult = await testFirebaseConnection(normalizedUrl)
+      if (!testResult.success) {
+        setIsTestingCloud(false)
+        setCloudErrorMsg(testResult.message)
+        return
+      }
+
+      // Kết nối thành công! Tự động đồng bộ toàn bộ lượt quay hiện có lên Firebase để không bị mất
+      if (records.length > 0) {
+        await syncAllRecordsToFirebase(records)
+      }
+      setSuccessMsg(`✅ Kết nối Firebase thành công! Đã tự động đồng bộ ${records.length} lượt quay lên mây.`)
+    } else {
+      setSuccessMsg('Đã lưu cấu hình Cloud!')
+    }
+
+    setIsTestingCloud(false)
+    setTimeout(() => setSuccessMsg(''), 4000)
   }
 
   const handleSaveBanner = async () => {
@@ -123,7 +154,7 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
       'Phần quà nhận được',
       'Thử thách đã làm',
       'Thời gian nhận',
-      'Link Video / Bằng chứng'
+      'Link Video Nhiệm Vụ'
     ]
     const rows = records.map((r, i) => [
       i + 1,
@@ -526,14 +557,35 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
                   </div>
                 </div>
 
+                {/* Hiển thị lỗi nếu kết nối Firebase thất bại */}
+                {cloudErrorMsg && (
+                  <div className="p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-300 text-xs flex items-start gap-2 shadow animate-in fade-in">
+                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div className="leading-relaxed">
+                      <strong className="block text-red-200 mb-0.5">LỖI KẾT NỐI FIREBASE:</strong>
+                      <span>{cloudErrorMsg}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={handleSaveCloudConfig}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:brightness-110 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow transition"
+                    disabled={isTestingCloud}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:brightness-110 disabled:opacity-60 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow transition"
                   >
-                    <Save className="w-4 h-4" />
-                    LƯU CẤU HÌNH ONLINE
+                    {isTestingCloud ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>ĐANG KIỂM TRA KẾT NỐI...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>LƯU CẤU HÌNH ONLINE</span>
+                      </>
+                    )}
                   </button>
 
                   {isFirebaseConfigured() && (

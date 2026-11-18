@@ -49,6 +49,7 @@ export interface SpinRecord {
   challengeTitle?: string
   mediaType?: 'video' | 'photo'
   mediaStorageKey?: string
+  synced?: boolean
 }
 
 export interface GreetingBannerConfig {
