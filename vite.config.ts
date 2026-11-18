@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import path from 'path'
 
-// Plugin cho phép Admin lưu cấu hình Firebase & Cloudinary trực tiếp từ trình duyệt xuống code dự án
+// Plugin cho phép Admin lưu cấu hình Firebase & Cloudinary trực tiếp từ trình duyệt vào file .env
 function cloudConfigApiPlugin(): Plugin {
   return {
     name: 'cloud-config-api',
@@ -17,24 +17,9 @@ function cloudConfigApiPlugin(): Plugin {
           req.on('end', () => {
             try {
               const data = JSON.parse(body)
-              const filePath = path.resolve(__dirname, 'src/config/cloudConfig.ts')
-              const content = `// Cấu hình Cloud tự động cập nhật bởi Admin
-export interface CloudConfig {
-  cloudinaryCloudName: string
-  cloudinaryUploadPreset: string
-  firebaseDbUrl: string
-}
 
-export const DEFAULT_CLOUD_CONFIG: CloudConfig = {
-  cloudinaryCloudName: ${JSON.stringify(data.cloudinaryCloudName || '')},
-  cloudinaryUploadPreset: ${JSON.stringify(data.cloudinaryUploadPreset || '')},
-  firebaseDbUrl: ${JSON.stringify(data.firebaseDbUrl || '')}
-}
-`
-              fs.writeFileSync(filePath, content, 'utf-8')
-
-              // Đồng thời cập nhật file .env
-              const envContent = `# Cấu hình đồng bộ tự động bởi Admin
+              // Cập nhật file .env duy nhất (không ghi vào code)
+              const envContent = `# Cấu hình đồng bộ Firebase & Cloudinary
 VITE_CLOUDINARY_CLOUD_NAME=${data.cloudinaryCloudName || ''}
 VITE_CLOUDINARY_UPLOAD_PRESET=${data.cloudinaryUploadPreset || ''}
 VITE_FIREBASE_DB_URL=${data.firebaseDbUrl || ''}

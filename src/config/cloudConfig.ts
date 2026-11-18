@@ -1,4 +1,3 @@
-// Cấu hình Cloud mặc định (Dành cho toàn bộ người chơi khi truy cập)
 export interface CloudConfig {
   cloudinaryCloudName: string
   cloudinaryUploadPreset: string

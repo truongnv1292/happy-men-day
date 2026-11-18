@@ -108,23 +108,24 @@ export function getCloudConfig(): CloudConfig {
 
   const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env || {}
 
-  const rawFbUrl =
-    stored.firebaseDbUrl ||
-    metaEnv.VITE_FIREBASE_DB_URL ||
-    DEFAULT_CLOUD_CONFIG.firebaseDbUrl ||
-    ''
+  let rawFbUrl = stored.firebaseDbUrl || ''
+  if (!rawFbUrl || rawFbUrl.includes('your-project') || rawFbUrl.includes('placeholder')) {
+    rawFbUrl = metaEnv.VITE_FIREBASE_DB_URL || ''
+  }
+
+  let cloudName = stored.cloudinaryCloudName || ''
+  if (!cloudName || cloudName.includes('your-') || cloudName.includes('placeholder')) {
+    cloudName = metaEnv.VITE_CLOUDINARY_CLOUD_NAME || ''
+  }
+
+  let uploadPreset = stored.cloudinaryUploadPreset || ''
+  if (!uploadPreset || uploadPreset.includes('your-') || uploadPreset.includes('placeholder')) {
+    uploadPreset = metaEnv.VITE_CLOUDINARY_UPLOAD_PRESET || ''
+  }
 
   return {
-    cloudinaryCloudName:
-      stored.cloudinaryCloudName ||
-      metaEnv.VITE_CLOUDINARY_CLOUD_NAME ||
-      DEFAULT_CLOUD_CONFIG.cloudinaryCloudName ||
-      '',
-    cloudinaryUploadPreset:
-      stored.cloudinaryUploadPreset ||
-      metaEnv.VITE_CLOUDINARY_UPLOAD_PRESET ||
-      DEFAULT_CLOUD_CONFIG.cloudinaryUploadPreset ||
-      '',
+    cloudinaryCloudName: cloudName,
+    cloudinaryUploadPreset: uploadPreset,
     firebaseDbUrl: normalizeFirebaseUrl(rawFbUrl)
   }
 }
