@@ -11,6 +11,7 @@ import { AdminLoginModal } from './components/AdminLoginModal'
 import { AdminSettingsModal } from './components/AdminSettingsModal'
 import { AlertModal, AlertModalConfig } from './components/AlertModal'
 import { CameraCapture, CameraCaptureHandle } from './components/CameraCapture'
+import { isHideGoiY as defaultHideGoiY } from './config/gameConfig'
 import { soundManager } from './utils/audio'
 import { Volume2, VolumeX, Settings, Sparkles, Flame, Crown, Lock } from 'lucide-react'
 
@@ -47,6 +48,25 @@ export const App: React.FC = () => {
   })
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
+
+  // Cấu hình ẩn / hiện gợi ý tên
+  const [isHideGoiYState, setIsHideGoiYState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('MENDAY_IS_HIDE_GOIY')
+      return saved !== null ? saved === 'true' : defaultHideGoiY
+    } catch {
+      return defaultHideGoiY
+    }
+  })
+
+  const handleToggleHideGoiY = (val: boolean) => {
+    setIsHideGoiYState(val)
+    try {
+      localStorage.setItem('MENDAY_IS_HIDE_GOIY', String(val))
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const [isMuted, setIsMuted] = useState<boolean>(false)
 
@@ -262,6 +282,7 @@ export const App: React.FC = () => {
                 selectedMember={selectedMember}
                 onSelectMember={setSelectedMember}
                 disabled={mustSpin}
+                isHideGoiY={isHideGoiYState}
                 onShowAlert={(cfg) => setAlertConfig(cfg)}
               />
 
@@ -407,6 +428,8 @@ export const App: React.FC = () => {
         <AdminSettingsModal
           records={records}
           members={MEMBERS}
+          isHideGoiY={isHideGoiYState}
+          onToggleHideGoiY={handleToggleHideGoiY}
           onResetAll={handleResetAll}
           onResetMember={handleResetMember}
           onLogout={handleAdminLogout}

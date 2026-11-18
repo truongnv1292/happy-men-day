@@ -16,6 +16,8 @@ import {
 interface AdminSettingsModalProps {
   records: SpinRecord[]
   members?: Member[]
+  isHideGoiY: boolean
+  onToggleHideGoiY: (value: boolean) => void
   onResetAll: () => void
   onResetMember: (memberId: string) => void
   onLogout: () => void
@@ -24,6 +26,8 @@ interface AdminSettingsModalProps {
 
 export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
   records,
+  isHideGoiY,
+  onToggleHideGoiY,
   onResetAll,
   onResetMember,
   onLogout,
@@ -152,6 +156,42 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Đăng xuất
+              </button>
+            </div>
+
+            {/* CẤU HÌNH BẢO MẬT: ẨN / HIỆN GỢI Ý TÊN */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-slate-200">
+                  Ẩn gợi ý danh sách tên (Bảo mật)
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  {isHideGoiY === false
+                    ? 'Đang bật ẩn: Người chơi phải tự gõ đúng họ tên (không dấu hoặc có dấu)'
+                    : 'Đang hiện: Cho phép xem danh sách và gợi ý dropdown'}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextVal = !isHideGoiY
+                  onToggleHideGoiY(nextVal)
+                  setSuccessMsg(
+                    nextVal === false
+                      ? 'Đã bật chế độ Ẩn gợi ý (Người chơi phải tự gõ tên)!'
+                      : 'Đã mở lại danh sách gợi ý chọn tên!'
+                  )
+                  setTimeout(() => setSuccessMsg(''), 2500)
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isHideGoiY === false ? 'bg-gold-500' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-slate-950 transition-transform ${
+                    isHideGoiY === false ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
               </button>
             </div>
 

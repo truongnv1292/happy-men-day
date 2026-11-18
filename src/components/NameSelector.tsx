@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Member, SpinRecord } from '../types'
-import { matchVietnamese } from '../utils/vietnamese'
-import { Search, UserCheck, CheckCircle2, AlertCircle, X, Shuffle } from 'lucide-react'
+import { normalizeVietnamese } from '../utils/vietnamese'
+import { isHideGoiY as defaultHideGoiY } from '../config/gameConfig'
+import { Search, UserCheck, CheckCircle2, AlertCircle, X, ShieldCheck } from 'lucide-react'
 
 interface NameSelectorProps {
   members: Member[]
@@ -9,6 +10,7 @@ interface NameSelectorProps {
   selectedMember: Member | null
   onSelectMember: (member: Member | null) => void
   disabled?: boolean
+  isHideGoiY?: boolean
   onShowAlert?: (config: { title: string; message: string; type?: 'info' | 'warning' | 'success' }) => void
 }
 
@@ -18,11 +20,14 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
   selectedMember,
   onSelectMember,
   disabled,
-  onShowAlert
+  isHideGoiY = defaultHideGoiY
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Quy ước: isHideGoiY = false nghĩa là ẨN GỢI Ý theo đúng yêu cầu người dùng
+  const hideSuggestion = isHideGoiY === false
 
   // Danh sách ID những người đã quay
   const spunMemberIds = new Set(records.map(r => r.memberId))
@@ -38,37 +43,42 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Cập nhật search term khi selectedMember thay đổi
+  // Cập nhật input khi selectedMember thay đổi
   useEffect(() => {
     if (selectedMember) {
       setSearchTerm(selectedMember.name)
     }
   }, [selectedMember])
 
-  // Lọc gợi ý theo input
-  const filteredMembers = members.filter(m => {
-    if (!searchTerm) return true
-    return matchVietnamese(searchTerm, m.name)
-  })
+  // Hàm kiểm tra khớp tên: Hỗ trợ tiếng Việt có dấu, không dấu, viết hoa, viết thường
+  const checkMatch = (inputText: string): Member | null => {
+    const trimmed = inputText.trim()
+    if (!trimmed) return null
 
-  // Chọn ngẫu nhiên 1 bạn chưa quay
-  const handleRandomPick = () => {
-    if (disabled) return
-    const unspunMembers = members.filter(m => !spunMemberIds.has(m.id))
-    if (unspunMembers.length === 0) {
-      if (onShowAlert) {
-        onShowAlert({
-          title: 'ĐÃ HOÀN TẤT VÒNG QUAY',
-          message: 'Toàn bộ 32 anh em công ty đều đã nhận được quà 19/11! Chúc mừng các nam thần!',
-          type: 'success'
-        })
+    const normInput = normalizeVietnamese(trimmed)
+
+    // Khớp tuyệt đối theo tên không dấu hoặc tên gốc
+    return members.find(m => {
+      return m.normalizedName === normInput || m.name.toLowerCase() === trimmed.toLowerCase()
+    }) || null
+  }
+
+  // Xử lý khi người dùng nhập tên
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setSearchTerm(val)
+
+    const matched = checkMatch(val)
+    if (matched) {
+      onSelectMember(matched)
+      setIsOpen(false)
+    } else {
+      onSelectMember(null)
+      // Chỉ mở dropdown nếu không bị ẩn gợi ý
+      if (!hideSuggestion && val.trim().length > 0) {
+        setIsOpen(true)
       }
-      return
     }
-    const randomMember = unspunMembers[Math.floor(Math.random() * unspunMembers.length)]
-    onSelectMember(randomMember)
-    setSearchTerm(randomMember.name)
-    setIsOpen(false)
   }
 
   const handleClear = () => {
@@ -80,6 +90,13 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
 
   const hasAlreadySpun = selectedMember ? spunMemberIds.has(selectedMember.id) : false
 
+  // Lọc gợi ý nếu bật gợi ý
+  const filteredMembers = members.filter(m => {
+    if (!searchTerm) return true
+    const normSearch = normalizeVietnamese(searchTerm)
+    return m.normalizedName.includes(normSearch) || m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <label className="block text-xs uppercase tracking-wider text-gold-400 font-bold mb-2 flex items-center justify-between">
@@ -87,16 +104,10 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
           <UserCheck className="w-4 h-4 text-gold-400" />
           DANH TÍNH NAM THẦN THAM GIA
         </span>
-        <button
-          type="button"
-          onClick={handleRandomPick}
-          disabled={disabled}
-          title="Chọn ngẫu nhiên 1 anh em chưa quay"
-          className="text-[11px] text-amber-300 hover:text-white flex items-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 px-2 py-0.5 rounded border border-amber-500/40 transition"
-        >
-          <Shuffle className="w-3 h-3" />
-          Chọn ngẫu nhiên
-        </button>
+        <span className="text-[11px] text-slate-400 flex items-center gap-1 font-normal">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          Bảo mật danh tính
+        </span>
       </label>
 
       {/* Input gõ tên */}
@@ -107,20 +118,18 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
         <input
           type="text"
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setIsOpen(true)
-            // Nếu người dùng gõ trùng khớp hoàn toàn với một tên
-            const exactMatch = members.find(m => m.name.toLowerCase() === e.target.value.trim().toLowerCase())
-            if (exactMatch) {
-              onSelectMember(exactMatch)
-            } else {
-              onSelectMember(null)
+          onChange={handleInputChange}
+          onFocus={() => {
+            if (!hideSuggestion && searchTerm.trim().length > 0) {
+              setIsOpen(true)
             }
           }}
-          onFocus={() => setIsOpen(true)}
           disabled={disabled}
-          placeholder="Nhập tên (không dấu hoặc có dấu)..."
+          placeholder={
+            hideSuggestion
+              ? "Nhập họ tên của bạn (không dấu hoặc có dấu)..."
+              : "Gõ tên nam thần (không dấu hoặc có dấu)..."
+          }
           className={`w-full pl-11 pr-10 py-3 bg-slate-900/90 text-slate-100 placeholder-slate-500 rounded-xl border text-sm sm:text-base font-semibold transition focus:outline-none focus:ring-2 ${
             hasAlreadySpun
               ? 'border-red-500/70 focus:ring-red-500/40'
@@ -142,24 +151,34 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
       </div>
 
       {/* Trạng thái xác nhận danh tính */}
-      {selectedMember && (
-        <div className="mt-2 text-xs flex items-center gap-1.5 font-medium">
+      {selectedMember ? (
+        <div className="mt-2 text-xs flex items-center gap-1.5 font-medium animate-in fade-in duration-200">
           {hasAlreadySpun ? (
-            <span className="text-red-400 flex items-center gap-1 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
-              <AlertCircle className="w-3.5 h-3.5" />
-              Anh <strong>{selectedMember.name}</strong> đã nhận quà rồi! Không được ăn gian nha!
+            <span className="text-red-400 flex items-center gap-1 bg-red-950/60 px-2.5 py-1.5 rounded-lg border border-red-800/60 w-full">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>
+                Anh <strong>{selectedMember.name}</strong> đã nhận quà rồi! Không được ăn gian nha!
+              </span>
             </span>
           ) : (
-            <span className="text-emerald-400 flex items-center gap-1 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Sẵn sàng: <strong>{selectedMember.name}</strong> (1 lượt quay may mắn)
+            <span className="text-emerald-400 flex items-center gap-1 bg-emerald-950/60 px-2.5 py-1.5 rounded-lg border border-emerald-800/60 w-full">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span>
+                Đã nhận diện: <strong>{selectedMember.name}</strong> (Sẵn sàng 1 lượt quay)
+              </span>
             </span>
           )}
         </div>
+      ) : (
+        searchTerm.trim().length > 0 && (
+          <div className="mt-2 text-[11px] text-amber-400/90 flex items-center gap-1">
+            <span>💡 Hãy nhập đầy đủ họ và tên (ví dụ: &ldquo;{normalizeVietnamese(members[0].name)}&rdquo; hoặc &ldquo;{members[0].name}&rdquo;)</span>
+          </div>
+        )
       )}
 
-      {/* Dropdown danh sách gợi ý */}
-      {isOpen && (
+      {/* Dropdown danh sách gợi ý (Chỉ hiển thị khi KHÔNG ẩn gợi ý) */}
+      {!hideSuggestion && isOpen && (
         <div className="absolute z-50 left-0 right-0 mt-2 max-h-60 overflow-y-auto rounded-xl bg-slate-900 border border-slate-700 shadow-2xl backdrop-blur-md divide-y divide-slate-800/80">
           {filteredMembers.length === 0 ? (
             <div className="p-3 text-xs text-slate-400 text-center">
