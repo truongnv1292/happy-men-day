@@ -258,9 +258,9 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
         </div>
       </div>
 
-      {/* Vòng quay Canvas phóng to 150% */}
+      {/* Vòng quay Canvas */}
       <div
-        className={`relative p-3.5 sm:p-4 rounded-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 shadow-[0_0_60px_rgba(245,158,11,0.3)] border-4 border-gold-500/40 transition-all ${
+        className={`relative p-2.5 sm:p-3.5 md:p-4 rounded-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 shadow-[0_0_60px_rgba(245,158,11,0.3)] border-4 border-gold-500/40 transition-all max-w-full flex items-center justify-center ${
           disabled ? 'opacity-90' : ''
         }`}
       >
@@ -268,7 +268,7 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
           ref={canvasRef}
           width={750}
           height={750}
-          className="max-w-full h-auto w-[360px] sm:w-[500px] md:w-[580px] lg:w-[620px] xl:w-[680px]"
+          className="w-full h-auto aspect-square max-w-[320px] sm:max-w-[420px] md:max-w-[460px] lg:max-w-[450px] xl:max-w-[530px] 2xl:max-w-[620px] block"
         />
       </div>
     </div>

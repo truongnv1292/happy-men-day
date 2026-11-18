@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Prize, Member } from '../types'
-import { Trophy, X, CheckCircle2 } from 'lucide-react'
+import { Trophy, X, CheckCircle2, Video, Sparkles } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { soundManager } from '../utils/audio'
 
@@ -8,6 +8,8 @@ interface WinnerModalProps {
   member: Member
   prize: Prize
   photoUrl?: string
+  videoUrl?: string
+  challengeTitle?: string
   onClose: () => void
 }
 
@@ -15,6 +17,8 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
   member,
   prize,
   photoUrl,
+  videoUrl,
+  challengeTitle,
   onClose
 }) => {
   useEffect(() => {
@@ -55,7 +59,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-2 border-gold-500/80 rounded-2xl p-6 sm:p-8 text-center shadow-[0_0_80px_rgba(245,158,11,0.35)] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-2 border-gold-500/80 rounded-2xl p-6 sm:p-8 text-center shadow-[0_0_80px_rgba(245,158,11,0.35)] overflow-hidden max-h-[92vh] overflow-y-auto">
         {/* Nút X đóng góc trên */}
         <button
           type="button"
@@ -82,10 +86,32 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
           {member.name}
         </p>
 
-        {/* Khung ảnh selfie bằng chứng */}
-        {photoUrl && (
+        {/* Hiển thị thử thách đã vượt qua */}
+        {challengeTitle && (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-300 text-xs font-bold mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+            <span>Đã vượt qua: {challengeTitle}</span>
+          </div>
+        )}
+
+        {/* Bằng chứng video hoặc ảnh */}
+        {videoUrl ? (
           <div className="mb-4 flex flex-col items-center">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 bg-gradient-to-tr from-gold-500 via-amber-300 to-amber-600 shadow-xl">
+            <div className="w-44 h-44 rounded-2xl overflow-hidden border-2 border-gold-500 shadow-xl bg-black">
+              <video
+                src={videoUrl}
+                controls
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-[10px] text-amber-300 font-bold mt-1 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+              <Video className="w-3 h-3 text-red-400" /> Video Thử Thách Nam Thần
+            </span>
+          </div>
+        ) : photoUrl ? (
+          <div className="mb-4 flex flex-col items-center">
+            <div className="relative w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-gold-500 via-amber-300 to-amber-600 shadow-xl">
               <img
                 src={photoUrl}
                 alt={member.name}
@@ -96,10 +122,10 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
               </span>
             </div>
             <span className="text-[10px] text-amber-300 font-bold mt-1 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
-              Khoảnh khắc chiến thắng (Bằng chứng chống quay hộ)
+              Khoảnh khắc thử thách (Bằng chứng độc quyền)
             </span>
           </div>
-        )}
+        ) : null}
 
         {/* Box giải thưởng */}
         <div className="relative bg-slate-900/90 border border-gold-500/50 rounded-xl p-5 mb-5 shadow-inner">
@@ -127,7 +153,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
           <span>Chiến lợi phẩm đã được khắc tên vào Bảng Vàng bất tử!</span>
         </div>
 
-        {/* Nút đóng đơn giản */}
+        {/* Nút đóng */}
         <button
           type="button"
           onClick={onClose}

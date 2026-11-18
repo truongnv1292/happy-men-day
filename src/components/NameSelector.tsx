@@ -99,7 +99,7 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
 
   return (
     <div className="relative w-full" ref={wrapperRef}>
-      <label className="block text-xs uppercase tracking-wider text-gold-400 font-bold mb-2 flex items-center justify-between">
+      <label className="text-xs uppercase tracking-wider text-gold-400 font-bold mb-2 flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <UserCheck className="w-4 h-4 text-gold-400" />
           DANH TÍNH NAM THẦN THAM GIA

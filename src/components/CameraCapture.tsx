@@ -166,8 +166,8 @@ export const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>
     )
 
     return (
-      <div className="flex flex-col items-center">
-        <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-gold-500/80 bg-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center justify-center">
+      <div className="flex flex-col items-center w-full">
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 border-gold-500/70 bg-slate-950/90 shadow-[0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-center">
           {cameraAllowed && stream ? (
             <>
               <video
@@ -178,43 +178,43 @@ export const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>
                 className="w-full h-full object-cover transform -scale-x-100"
               />
               {/* Radar scanner overlay */}
-              <div className="absolute inset-0 pointer-events-none border border-gold-400/40 rounded-full animate-pulse" />
-              <div className="absolute top-1.5 right-2 text-[9px] bg-red-600 text-white font-black px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow animate-pulse">
+              <div className="absolute inset-0 pointer-events-none border border-gold-400/40 rounded-2xl" />
+              <div className="absolute top-2 right-2 text-[9px] bg-red-600/90 text-white font-black px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow animate-pulse">
                 <span className="w-1.5 h-1.5 rounded-full bg-white" /> REC
               </div>
             </>
           ) : (
-            <div className="p-3 text-center flex flex-col items-center justify-center text-slate-400">
+            <div className="p-3 pb-7 text-center flex flex-col items-center justify-center text-slate-400 w-full h-full">
               {hasCamera ? (
                 <>
-                  <CameraOff className="w-6 h-6 text-amber-400/80 mb-1" />
+                  <CameraOff className="w-6 h-6 text-amber-400/90 mb-1.5" />
                   <button
                     type="button"
                     onClick={startCamera}
                     disabled={isRequesting}
-                    className="text-[11px] text-gold-400 hover:text-gold-300 font-extrabold flex items-center gap-1 bg-gold-500/10 hover:bg-gold-500/20 px-2.5 py-1 rounded-full border border-gold-500/30 transition shadow"
+                    className="text-xs text-gold-400 hover:text-gold-300 font-extrabold flex items-center gap-1 bg-gold-500/15 hover:bg-gold-500/25 px-3 py-1.5 rounded-xl border border-gold-500/40 transition shadow active:scale-95"
                   >
                     {isRequesting ? (
                       <>
-                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                         <span>Đang mở...</span>
                       </>
                     ) : (
                       <>
-                        <Camera className="w-3 h-3" />
+                        <Camera className="w-3.5 h-3.5" />
                         <span>Bật Camera</span>
                       </>
                     )}
                   </button>
                   {errorMessage && (
-                    <span className="text-[9px] text-red-400 font-medium mt-1 leading-tight">
+                    <span className="text-[10px] text-red-400 font-medium mt-1 leading-tight px-1 text-center">
                       {errorMessage}
                     </span>
                   )}
                 </>
               ) : (
-                <div className="text-[10px] text-slate-400 flex flex-col items-center">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 mb-1" />
+                <div className="text-[11px] text-slate-400 flex flex-col items-center">
+                  <ShieldCheck className="w-6 h-6 text-emerald-400 mb-1" />
                   <span>Không có Camera</span>
                   <span className="text-[9px] text-emerald-400/80 font-semibold">(Được phép quay)</span>
                 </div>
@@ -223,21 +223,23 @@ export const CameraCapture = forwardRef<CameraCaptureHandle, CameraCaptureProps>
           )}
 
           {/* Icon scan ở góc */}
-          <div className="absolute bottom-1 inset-x-0 flex justify-center pointer-events-none">
-            <span className="text-[9px] font-bold text-gold-300 bg-slate-900/95 px-2 py-0.5 rounded-full border border-gold-500/40 flex items-center gap-1 shadow">
+          <div className="absolute bottom-1.5 inset-x-0 flex justify-center pointer-events-none">
+            <span className="text-[9px] font-bold text-gold-300 bg-slate-900/95 px-2.5 py-0.5 rounded-full border border-gold-500/40 flex items-center gap-1 shadow">
               <Scan className="w-2.5 h-2.5 text-gold-400" />
               FACE ID 19/11
             </span>
           </div>
         </div>
 
-        <p className="mt-1.5 text-[11px] text-slate-400 text-center font-medium flex items-center gap-1">
-          <Camera className="w-3 h-3 text-gold-400" />
-          {cameraAllowed
-            ? `Đã nhận diện: ${playerName || 'Sẵn sàng ghi hình'}`
-            : hasCamera
-            ? 'Vui lòng bật camera để nhận diện trước khi quay'
-            : 'Thiết bị không có cam - Cho phép quay trực tiếp'}
+        <p className="mt-2 text-xs text-slate-400 text-center font-medium flex items-center justify-center gap-1 px-2">
+          <Camera className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
+          <span>
+            {cameraAllowed
+              ? `Đã nhận diện: ${playerName || 'Sẵn sàng ghi hình'}`
+              : hasCamera
+              ? 'Vui lòng bật camera để nhận diện trước khi quay'
+              : 'Thiết bị không có cam - Cho phép quay trực tiếp'}
+          </span>
         </p>
       </div>
     )
