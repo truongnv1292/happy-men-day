@@ -7,6 +7,7 @@ export interface AlertModalConfig {
   buttonText?: string
   type?: 'warning' | 'info' | 'success'
   icon?: React.ReactNode
+  onAction?: () => void
 }
 
 interface AlertModalProps {
@@ -54,6 +55,13 @@ export const AlertModal: React.FC<AlertModalProps> = ({ config, onClose }) => {
 
   const theme = getTheme()
 
+  const handleAction = () => {
+    if (config?.onAction) {
+      config.onAction()
+    }
+    onClose()
+  }
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
@@ -94,7 +102,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({ config, onClose }) => {
         {/* Nút đóng/xác nhận */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleAction}
           className={`w-full py-3 px-6 rounded-xl font-black text-sm tracking-wide transition transform hover:scale-[1.02] active:scale-[0.98] ${theme.btnBg}`}
         >
           {buttonText}
