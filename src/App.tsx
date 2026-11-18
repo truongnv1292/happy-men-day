@@ -105,6 +105,20 @@ export const App: React.FC = () => {
       return
     }
 
+    // Yêu cầu bắt buộc bật camera nếu thiết bị có sẵn camera trên web hoặc mobile
+    if (cameraRef.current && cameraRef.current.hasCamera && !cameraRef.current.cameraAllowed) {
+      setAlertConfig({
+        title: 'YÊU CẦU BẬT CAMERA 📸',
+        message: 'Hệ thống phát hiện thiết bị của bạn có Camera! Để đảm bảo công bằng và chụp lại khoảnh khắc trúng thưởng độc quyền, vui lòng cho phép bật camera trước khi quay nhé nam thần!',
+        buttonText: 'BẬT CAMERA NGAY',
+        type: 'warning',
+        onAction: () => {
+          cameraRef.current?.startCamera()
+        }
+      })
+      return
+    }
+
     // Nếu đã quay rồi -> Bật popup chặn troll
     if (existingRecord) {
       setBlockedModalData({
