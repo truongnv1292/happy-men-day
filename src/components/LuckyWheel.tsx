@@ -121,12 +121,12 @@ export const LuckyWheel: React.FC<LuckyWheelProps> = ({
       ctx.shadowColor = 'rgba(0,0,0,0.85)'
       ctx.shadowBlur = 6
 
-      // Giữ tối đa 22 ký tự, hầu như toàn bộ 12 giải thưởng đều hiển thị đầy đủ
+      // Giữ tối đa 25 ký tự, toàn bộ giải thưởng đều hiển thị trọn vẹn
       let text = prize.name
-      if (text.length > 22) {
-        text = text.substring(0, 20) + '..'
+      if (text.length > 25) {
+        text = text.substring(0, 23) + '..'
       }
-      ctx.fillText(text, radius - 74, 0)
+      ctx.fillText(text, radius - 70, 0)
       ctx.restore()
     }
 

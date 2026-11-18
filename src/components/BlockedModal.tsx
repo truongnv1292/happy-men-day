@@ -10,11 +10,12 @@ interface BlockedModalProps {
 }
 
 const TROLL_QUOTES = [
-  'Ơ kìa người anh em! ✋ Cảnh sát 19/11 bắt tại trận tính ăn gian nha! Một người chỉ được 1 quà thôi sếp ơi!',
-  'Định làm cú đúp hả anh? Tham lam thế này thì chị em phụ nữ 8/3 cũng phải chào thua! 😂',
-  'Nhường cơ hội cho các anh em khác đi nào! Quà trên tay rồi về chỗ rung đùi thưởng thức đi sếp!',
-  'Bản lĩnh đàn ông là biết dừng lại đúng lúc! Anh đã ẵm trọn giải thưởng xịn xò rồi đó nha!',
-  'Hệ thống ghi nhận: Mức độ tham lam của anh đã vượt quá chỉ số cho phép của ngày 19/11! 🚨'
+  'Ơ kìa người anh em! ✋ Cảnh sát 19/11 bắt tại trận tính ăn gian nha! Tham lam thế này thì chị em phụ nữ 8/3 cũng phải bái làm sư phụ! 😂',
+  'Định làm cú đúp ẵm 2 phần quà hả sếp? Nhường cơ hội cho các đồng râm khác đi, quà về tay rồi thì về chỗ rung đùi xem Youtube đi anh!',
+  'Bản lĩnh đàn ông là biết dừng lại đúng lúc! Tham bát bỏ mâm là bị cả công ty bắt khao trà sữa full topping đấy nha!',
+  'Hệ thống AI vừa quét được: Mức độ "tham lam vô đáy" của anh đã vượt quá ngưỡng chịu tải của máy chủ! Còi hú inh ỏi rồi té lẹ đi sếp ơi! 🚨',
+  'Alo công an phường hả? Ở đây có một nam thần tính cuỗm 2 phần quà của anh em! Về chỗ ngay kẻo bị ban tổ chức tịch thu luôn quà cũ giờ! 🚔',
+  'Thôi thôi anh trai ơi! Mặt dày thế này thì kem chống nắng xịn nhất thế giới cũng không che nổi đâu! Mỗi người 1 lượt, luật làng bất biến nha! 😜'
 ]
 
 export const BlockedModal: React.FC<BlockedModalProps> = ({
@@ -49,11 +50,11 @@ export const BlockedModal: React.FC<BlockedModalProps> = ({
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950 border border-red-700/60 text-red-400 text-xs font-bold uppercase tracking-wider mb-3">
           <ShieldAlert className="w-4 h-4" />
-          CẢNH SÁT 19/11 TUÝT CÒI
+          CẢNH SÁT 19/11 TUÝT CÒI BẮT TẠI TRẬN
         </div>
 
         <h3 className="text-xl font-black text-white mb-1">
-          Ơ KÌA ANH {member.name.toUpperCase()}!
+          Ơ KÌA NAM THẦN {member.name.toUpperCase()}!
         </h3>
 
         <p className="text-sm text-red-300 font-medium mb-4 italic px-2">
@@ -64,7 +65,7 @@ export const BlockedModal: React.FC<BlockedModalProps> = ({
         <div className="bg-slate-950/80 border border-red-900/60 rounded-xl p-4 mb-5 text-left">
           <div className="text-xs text-slate-400 uppercase font-semibold mb-1 flex items-center gap-1">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-            Quà anh đã rinh về trước đó:
+            Chiến lợi phẩm anh đã rinh về trước đó:
           </div>
           <div className="flex items-center gap-3">
             <span className="text-3xl">{record.prizeIcon}</span>
@@ -80,7 +81,7 @@ export const BlockedModal: React.FC<BlockedModalProps> = ({
           onClick={onClose}
           className="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 transition shadow-lg shadow-red-900/50"
         >
-          DẠ EM BIẾT RỒI, EM NHƯỜNG ANH EM KHÁC!
+          DẠ EM BIẾT RỒI, EM XIN CHỪA & NHƯỜNG ANH EM KHÁC! 🏃💨
         </button>
       </div>
     </div>

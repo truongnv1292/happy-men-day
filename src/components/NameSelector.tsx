@@ -157,14 +157,14 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
             <span className="text-red-400 flex items-center gap-1 bg-red-950/60 px-2.5 py-1.5 rounded-lg border border-red-800/60 w-full">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>
-                Anh <strong>{selectedMember.name}</strong> đã nhận quà rồi! Không được ăn gian nha!
+                Anh <strong>{selectedMember.name}</strong> đã ẵm quà rồi nha! Tham lam là bị tịch thu đấy! 🚨
               </span>
             </span>
           ) : (
             <span className="text-emerald-400 flex items-center gap-1 bg-emerald-950/60 px-2.5 py-1.5 rounded-lg border border-emerald-800/60 w-full">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
               <span>
-                Đã nhận diện: <strong>{selectedMember.name}</strong> (Sẵn sàng 1 lượt quay)
+                Đã nhận diện nam thần: <strong>{selectedMember.name}</strong> (Cầu trời khấn phật tay thơm!) 🔥
               </span>
             </span>
           )}

@@ -97,9 +97,9 @@ export const App: React.FC = () => {
 
     if (!selectedMember) {
       setAlertConfig({
-        title: 'CHƯA CHỌN NAM THẦN',
-        message: 'Vui lòng chọn hoặc gõ tên nam thần trước khi nhấn nút quay khởi động cỗ máy may mắn!',
-        buttonText: 'ĐÃ HIỂU, ĐỂ TÔI CHỌN',
+        title: 'Ơ KÌA CHƯA CHỌN DANH TÍNH!',
+        message: '👉 Tính quay lén hay sao mà chưa chọn tên thế người anh em? Gõ tên mình vào ô phía trên rồi hãy bấm nút khởi động cỗ máy nha!',
+        buttonText: 'DẠ EM BIẾT RỒI, ĐỂ EM CHỌN NGAY!',
         type: 'warning'
       })
       return
@@ -212,7 +212,7 @@ export const App: React.FC = () => {
                   MEN&apos;S DAY 19/11
                 </span>
                 <span className="text-[11px] text-slate-400 hidden sm:inline-flex items-center gap-1 font-medium">
-                  <Sparkles className="w-3 h-3 text-gold-400" /> Bản Lĩnh Phái Mạnh
+                  <Sparkles className="w-3 h-3 text-gold-400" /> Ngày Của Đấng Mày Râu - Đẹp Trai Không Cần Giải Thích 😎
                 </span>
               </div>
               <h1 className="text-base sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5">
@@ -331,13 +331,13 @@ export const App: React.FC = () => {
                     }`}
                   >
                     <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase opacity-80">
-                      {mustSpin ? 'ĐANG QUAY...' : existingRecord ? 'ĐÃ QUAY XONG' : 'ENGINE START'}
+                      {mustSpin ? 'ĐANG QUAY...' : existingRecord ? 'HẾT LƯỢT RỒI' : 'ENGINE START'}
                     </span>
                     <span className="text-xl sm:text-2xl font-black tracking-tight leading-none my-1">
                       {existingRecord ? 'XEM LẠI' : 'QUAY NGAY'}
                     </span>
                     <span className="text-[10px] font-bold opacity-75">
-                      {existingRecord ? 'Không được quay lại' : '1 Lượt duy nhất'}
+                      {existingRecord ? 'Tham là ăn đòn nha' : '1 Lượt duy nhất'}
                     </span>
                   </div>
                 </button>
@@ -345,18 +345,18 @@ export const App: React.FC = () => {
                 <p className="mt-4 text-xs text-center text-slate-400">
                   {mustSpin ? (
                     <span className="text-gold-400 font-semibold animate-pulse">
-                      ⚡ Bánh xe đang quay, chúc anh em may mắn!
+                      ⚡ Bánh xe đang quay tít mù, cầu trời khấn phật đừng trúng món bựa nhất! 😂
                     </span>
                   ) : existingRecord ? (
                     <span className="text-red-400 font-semibold">
-                      ⛔ Anh đã dùng hết lượt. Bấm để xem lại quà đã nhận!
+                      ⛔ Hết lượt rồi sếp ơi! Tham lam là bị cắt cơm đấy, bấm vào nút để ngắm lại chiến lợi phẩm!
                     </span>
                   ) : selectedMember ? (
                     <span className="text-emerald-400 font-semibold">
-                      🔥 Nhấn nút to ở trên để quay (kết quả lưu ngay vào Bảng Vàng)!
+                      🔥 Tay thơm thì bấm, tay thối ráng chịu! Nhấn nút to tướng để cỗ máy may mắn quay!
                     </span>
                   ) : (
-                    <span>💡 Gõ tên anh em vào ô phía trên rồi nhấn QUAY</span>
+                    <span>💡 Gõ danh tính vào ô trên xem hôm nay có thành "Bàn tay vàng trong làng bốc thăm" không nào!</span>
                   )}
                 </p>
               </div>
@@ -392,7 +392,7 @@ export const App: React.FC = () => {
       {/* FOOTER */}
       <footer className="relative z-10 border-t border-slate-800/80 bg-slate-950/80 px-4 py-3 text-center text-xs text-slate-400">
         <p>
-          🎉 Chúc toàn thể anh em công ty một ngày <strong>Quốc tế Đàn Ông 19/11</strong> luôn bản lĩnh, phong độ và ngập tràn niềm vui! 🍻💪
+          🎉 Chúc toàn thể 500 anh em một ngày <strong>Quốc tế Đàn Ông 19/11</strong>: Tiền đầy túi, tình đầy tim, deadline tự tan biến, phong độ ngời ngời và tối nay không bị ai bắt rửa bát hay quét nhà! 🍻💪🚀
         </p>
       </footer>
 

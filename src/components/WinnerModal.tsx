@@ -124,7 +124,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
         {/* Thông báo đã tự động ghi nhận */}
         <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-semibold mb-5 bg-emerald-950/40 border border-emerald-800/40 py-2 px-3 rounded-xl">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-          <span>Kết quả đã được tự động lưu vào Bảng Vàng vinh danh!</span>
+          <span>Chiến lợi phẩm đã được khắc tên vào Bảng Vàng bất tử!</span>
         </div>
 
         {/* Nút đóng đơn giản */}
@@ -134,7 +134,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
           className="w-full py-3 px-6 rounded-xl font-bold text-sm text-slate-200 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 transition flex items-center justify-center gap-2"
         >
           <X className="w-4 h-4" />
-          Đóng
+          Đóng (Đi khoe với cả phòng ngay) 🥳
         </button>
       </div>
     </div>
