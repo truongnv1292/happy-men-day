@@ -22,4 +22,5 @@ export interface SpinRecord {
   prizeName: string
   prizeIcon: string
   spunAt: string
+  photoUrl?: string
 }

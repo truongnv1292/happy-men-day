@@ -25,7 +25,7 @@
 
 5. **Bảng Vinh Danh & Ban Tổ Chức (Admin Panel)**:
    - Bảng vàng cập nhật trực tiếp ai đã nhận quà gì, tiến độ X/32 người.
-   - Ban tổ chức (Mật khẩu: `1911`): Reset lượt quay, xuất kết quả trao thưởng ra file Excel/CSV tiếng Việt UTF-8.
+   - Ban tổ chức & Quản trị viên (Tài khoản mặc định: `admin` / `123456!@#`, cấu hình trong `src/config/admin.ts`): Toàn quyền reset toàn bộ lịch sử quay để test, reset từng cá nhân, xuất kết quả trao thưởng ra file Excel/CSV tiếng Việt UTF-8.
 
 ---
 

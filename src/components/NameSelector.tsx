@@ -9,6 +9,7 @@ interface NameSelectorProps {
   selectedMember: Member | null
   onSelectMember: (member: Member | null) => void
   disabled?: boolean
+  onShowAlert?: (config: { title: string; message: string; type?: 'info' | 'warning' | 'success' }) => void
 }
 
 export const NameSelector: React.FC<NameSelectorProps> = ({
@@ -16,7 +17,8 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
   records,
   selectedMember,
   onSelectMember,
-  disabled
+  disabled,
+  onShowAlert
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -54,7 +56,13 @@ export const NameSelector: React.FC<NameSelectorProps> = ({
     if (disabled) return
     const unspunMembers = members.filter(m => !spunMemberIds.has(m.id))
     if (unspunMembers.length === 0) {
-      alert('Tất cả 32 anh em đều đã quay xong!')
+      if (onShowAlert) {
+        onShowAlert({
+          title: 'ĐÃ HOÀN TẤT VÒNG QUAY',
+          message: 'Toàn bộ 32 anh em công ty đều đã nhận được quà 19/11! Chúc mừng các nam thần!',
+          type: 'success'
+        })
+      }
       return
     }
     const randomMember = unspunMembers[Math.floor(Math.random() * unspunMembers.length)]

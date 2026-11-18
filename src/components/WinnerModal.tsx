@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react'
 import { Prize, Member } from '../types'
-import { Trophy, Check } from 'lucide-react'
+import { Trophy, X, CheckCircle2 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { soundManager } from '../utils/audio'
 
 interface WinnerModalProps {
   member: Member
   prize: Prize
+  photoUrl?: string
   onClose: () => void
 }
 
 export const WinnerModal: React.FC<WinnerModalProps> = ({
   member,
   prize,
+  photoUrl,
   onClose
 }) => {
   useEffect(() => {
@@ -47,8 +49,23 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
   }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-2 border-gold-500/80 rounded-2xl p-6 sm:p-8 text-center shadow-[0_0_80px_rgba(245,158,11,0.35)] overflow-hidden">
+        {/* Nút X đóng góc trên */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+          title="Đóng"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Họa tiết ánh sáng vàng nền */}
         <div className="absolute -top-24 -left-24 w-48 h-48 bg-gold-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -61,12 +78,31 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
         <h3 className="text-xl sm:text-2xl font-black text-slate-200 mb-1">
           CHÚC MỪNG NAM THẦN
         </h3>
-        <p className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-200 to-gold-400 mb-6 drop-shadow">
+        <p className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-200 to-gold-400 mb-3 drop-shadow">
           {member.name}
         </p>
 
+        {/* Khung ảnh selfie bằng chứng */}
+        {photoUrl && (
+          <div className="mb-4 flex flex-col items-center">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1 bg-gradient-to-tr from-gold-500 via-amber-300 to-amber-600 shadow-xl">
+              <img
+                src={photoUrl}
+                alt={member.name}
+                className="w-full h-full object-cover rounded-full border-2 border-slate-900"
+              />
+              <span className="absolute -bottom-1 -right-1 bg-slate-950 text-sm p-1 rounded-full border border-gold-500 shadow">
+                📸
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-300 font-bold mt-1 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
+              Khoảnh khắc chiến thắng (Bằng chứng chống quay hộ)
+            </span>
+          </div>
+        )}
+
         {/* Box giải thưởng */}
-        <div className="relative bg-slate-900/90 border border-gold-500/50 rounded-xl p-5 mb-6 shadow-inner">
+        <div className="relative bg-slate-900/90 border border-gold-500/50 rounded-xl p-5 mb-5 shadow-inner">
           <div className="text-6xl sm:text-7xl mb-3 animate-bounce-subtle">
             {prize.icon}
           </div>
@@ -85,13 +121,20 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
           )}
         </div>
 
+        {/* Thông báo đã tự động ghi nhận */}
+        <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-semibold mb-5 bg-emerald-950/40 border border-emerald-800/40 py-2 px-3 rounded-xl">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span>Kết quả đã được tự động lưu vào Bảng Vàng vinh danh!</span>
+        </div>
+
+        {/* Nút đóng đơn giản */}
         <button
           type="button"
           onClick={onClose}
-          className="w-full py-3.5 px-6 rounded-xl font-black text-base text-slate-950 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 shadow-[0_0_25px_rgba(245,158,11,0.5)] transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          className="w-full py-3 px-6 rounded-xl font-bold text-sm text-slate-200 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 transition flex items-center justify-center gap-2"
         >
-          <Check className="w-5 h-5" />
-          XÁC NHẬN NHẬN QUÀ & LƯU LỊCH SỬ
+          <X className="w-4 h-4" />
+          Đóng
         </button>
       </div>
     </div>
